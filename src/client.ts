@@ -36,6 +36,10 @@ export class HAClient implements HAClientLike {
     return this.request<unknown>("POST", `/api/services/${encodeURIComponent(domain)}/${encodeURIComponent(service)}`, serviceData);
   }
 
+  public async callServiceWithResponse(domain: string, service: string, serviceData: JsonMap = {}): Promise<unknown> {
+    return this.request<unknown>("POST", `/api/services/${encodeURIComponent(domain)}/${encodeURIComponent(service)}?return_response=true`, serviceData);
+  }
+
   public async getHistory(startTimestamp: string, entityId?: string, endTimestamp?: string): Promise<unknown> {
     const params = new URLSearchParams();
     if (entityId) {

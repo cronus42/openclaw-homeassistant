@@ -20,6 +20,7 @@ function makeClient(overrides: Partial<HAClientLike> = {}): Mocked<HAClientLike>
     getState: vi.fn().mockResolvedValue({ entity_id: "light.kitchen", state: "on", attributes: {} }),
     getServices: vi.fn().mockResolvedValue([]),
     callService: vi.fn().mockResolvedValue({ ok: true }),
+    callServiceWithResponse: vi.fn().mockResolvedValue({ "calendar.test": { events: [] } }),
     getHistory: vi.fn().mockResolvedValue([]),
     getLogbook: vi.fn().mockResolvedValue([]),
     renderTemplate: vi.fn().mockResolvedValue("ok"),
@@ -1164,6 +1165,61 @@ describe("ha_render_template", () => {
     const tools = createTools({ client, config: makeConfig({ readOnly: true }) });
     await tools.ha_render_template({ template: "{{ states('sensor.temp') }}" });
     expect(client.renderTemplate).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ha_calendar_get_events
+// ---------------------------------------------------------------------------
+
+describe("ha_calendar_get_events", () => {
+  test("calls calendar.get_events via callServiceWithResponse", async () => {
+    const client = makeClient();
+    const tools = createTools({ client, config: makeConfig() });
+    await tools.ha_calendar_get_events({ entity_id: "calendar.home" });
+    expect(client.callServiceWithResponse).toHaveBeenCalledWith("calendar", "get_events", { entity_id: "calendar.home" });
+  });
+
+  test("passes start_date_time and end_date_time when provided", async () => {
+    const client = makeClient();
+    const tools = createTools({ client, config: makeConfig() });
+    await tools.ha_calendar_get_events({
+      entity_id: "calendar.home",
+      start_date_time: "2024-01-01T00:00:00",
+      end_date_time: "2024-01-07T23:59:59"
+    });
+    expect(client.callServiceWithResponse).toHaveBeenCalledWith("calendar", "get_events", {
+      entity_id: "calendar.home",
+      start_date_time: "2024-01-01T00:00:00",
+      end_date_time: "2024-01-07T23:59:59"
+    });
+  });
+
+  test("omits optional params when not provided", async () => {
+    const client = makeClient();
+    const tools = createTools({ client, config: makeConfig() });
+    await tools.ha_calendar_get_events({ entity_id: "calendar.home" });
+    const callArgs = (client.callServiceWithResponse as ReturnType<typeof vi.fn>).mock.calls[0][2] as Record<string, unknown>;
+    expect(callArgs).not.toHaveProperty("start_date_time");
+    expect(callArgs).not.toHaveProperty("end_date_time");
+  });
+
+  test("rejects non-calendar entity", async () => {
+    const client = makeClient();
+    const tools = createTools({ client, config: makeConfig() });
+    await expect(tools.ha_calendar_get_events({ entity_id: "sensor.temperature" })).rejects.toThrow("calendar domain");
+  });
+
+  test("rejects missing entity_id", async () => {
+    const client = makeClient();
+    const tools = createTools({ client, config: makeConfig() });
+    await expect(tools.ha_calendar_get_events({ entity_id: "" })).rejects.toThrow("required");
+  });
+
+  test("respects allowedDomains", async () => {
+    const client = makeClient();
+    const tools = createTools({ client, config: makeConfig({ allowedDomains: ["light"] }) });
+    await expect(tools.ha_calendar_get_events({ entity_id: "calendar.home" })).rejects.toThrow("blocked");
   });
 });
 

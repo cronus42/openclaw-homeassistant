@@ -71,6 +71,7 @@ export interface HAClientLike {
   getState(entityId: string): Promise<HAEntityState>;
   getServices(): Promise<HAServiceDomain[]>;
   callService(domain: string, service: string, serviceData?: JsonMap): Promise<unknown>;
+  callServiceWithResponse(domain: string, service: string, serviceData?: JsonMap): Promise<unknown>;
   getHistory(startTimestamp: string, entityId?: string, endTimestamp?: string): Promise<unknown>;
   getLogbook(startTimestamp: string, entityId?: string, endTimestamp?: string): Promise<unknown>;
   renderTemplate(template: string, variables?: JsonMap): Promise<unknown>;
@@ -203,6 +204,13 @@ export interface RenderTemplateInput {
   variables?: JsonMap;
 }
 
+/** ha_calendar_get_events */
+export interface CalendarGetEventsInput {
+  entity_id: string;
+  start_date_time?: string;
+  end_date_time?: string;
+}
+
 /** ha_notify */
 export interface NotifyInput {
   target: string;
@@ -247,6 +255,7 @@ export interface ToolInputMap {
   ha_fire_event: FireEventInput;
   ha_render_template: RenderTemplateInput;
   ha_notify: NotifyInput;
+  ha_calendar_get_events: CalendarGetEventsInput;
 }
 
 /** All tool names as a union type. */

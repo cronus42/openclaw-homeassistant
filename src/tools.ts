@@ -280,6 +280,16 @@ export function createTools({ client, config }: ToolDeps) {
       return client.renderTemplate(requiredString(input?.template, "template"), input?.variables ?? {});
     },
 
+    ha_calendar_get_events: async (input: { entity_id: string; start_date_time?: string; end_date_time?: string }) => {
+      assertDomainAllowed(config, "calendar");
+      const { domain } = assertEntityAllowed(config, requiredString(input?.entity_id, "entity_id"));
+      if (domain !== "calendar") throw new Error("entity_id must be in calendar domain");
+      const serviceData: JsonMap = { entity_id: input.entity_id };
+      if (input.start_date_time) serviceData.start_date_time = input.start_date_time;
+      if (input.end_date_time) serviceData.end_date_time = input.end_date_time;
+      return client.callServiceWithResponse("calendar", "get_events", serviceData);
+    },
+
     ha_notify: async (input: { target: string; message: string; title?: string; data?: JsonMap }) => {
       assertToolAllowed(config, "ha_notify");
       assertDomainAllowed(config, "notify");
