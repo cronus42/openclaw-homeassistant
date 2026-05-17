@@ -38,7 +38,8 @@ const TOOL_NAMES = [
   "ha_call_service",
   "ha_fire_event",
   "ha_render_template",
-  "ha_notify"
+  "ha_notify",
+  "ha_calendar_get_events"
 ] as const;
 
 export default function init(api: OpenClawApi): void {
@@ -94,5 +95,6 @@ export type {
   NotifyInput,
   HAEntityState,
   HAClientLike,
-  HAServiceDomain
+  HAServiceDomain,
+  CalendarGetEventsInput
 } from "./types";
